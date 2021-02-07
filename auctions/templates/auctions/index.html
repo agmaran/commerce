@@ -13,7 +13,7 @@
                     <h5 class="card-title">{{listing.title}}</h5>
                     <h6 class="card-subtitle mb-2 text-muted">USD {{listing.price}}</h6>
                     <p class="card-text">{{listing.description}}</p>
-                    <a href="#" class="btn btn-primary">See</a>
+                    <a href="{% url 'listing' listing.id %}" class="btn btn-primary">See</a>
                 </div>
                 <div class="card-footer">
                     Created {{listing.date}}
