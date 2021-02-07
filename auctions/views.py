@@ -4,8 +4,9 @@ from django.db.models.deletion import SET_NULL
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from .models import User, Category, Listing
+from .models import User, Category, Listing, Bid
 from django import forms
+from django.contrib.auth.decorators import login_required
 
 
 class NewListingForm(forms.Form):
@@ -93,3 +94,29 @@ def create(request):
     return render(request, "auctions/create.html", {
         'form': NewListingForm()
     })
+
+
+def listing(request, listing_id):
+    listing = Listing.objects.get(pk=listing_id)
+    try:
+        is_on_watchlist = listing in request.user.watchlist.all()
+    except AttributeError:
+        is_on_watchlist = False
+    return render(request, "auctions/listing.html", {
+        "listing": listing,
+        "n_bids": len(listing.listing_bids.all()),
+        "is_on_watchlist": is_on_watchlist
+    })
+
+
+@login_required(login_url="login")
+def a_watchlist(request, listing_id):
+    listing = Listing.objects.get(pk=listing_id)
+    listing.watchers.add(request.user)
+    return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+
+
+def r_watchlist(request, listing_id):
+    listing = Listing.objects.get(pk=listing_id)
+    request.user.watchlist.remove(listing)
+    return HttpResponseRedirect(reverse("listing", args=[listing_id]))

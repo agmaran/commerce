@@ -26,7 +26,7 @@ class Listing(models.Model):
     category = models.ForeignKey(
         Category, blank=True, null=True, on_delete=models.CASCADE, related_name="category_listings")
     watchers = models.ManyToManyField(
-        User, blank=True, null=True, related_name="watchlist")
+        User, blank=True, related_name="watchlist")
 
     def __str__(self):
         return f"{self.title}"

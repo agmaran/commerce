@@ -1,0 +1,20 @@
+{% extends "auctions/layout.html" %}
+{% block title %}{{listing.title}}{% endblock %}
+{% block body %}
+<h2>Listing: {{listing.title}}</h2>
+<img src="{{listing.image}}" alt="Listing photo">
+<p>{{listing.description}}</p>
+<h6 class="mb-2 text-muted">Current price: USD {{listing.price}}</h6>
+<p>{{n_bids}} bid(s) so far.</p>
+{% if is_on_watchlist %}
+<form action="{% url 'r_watchlist' listing.id %}" method="POST" class="col-12 pr-4">
+    {% csrf_token %}
+    <input type="submit" class="btn btn-primary mt-3" value="Remove from my Watchlist">
+</form>
+{% else %}
+<form action="{% url 'a_watchlist' listing.id %}" method="POST" class="col-12 pr-4">
+    {% csrf_token %}
+    <input type="submit" class="btn btn-primary mt-3" value="Add to my Watchlist">
+</form>
+{% endif %}
+{% endblock %}
