@@ -1,7 +1,26 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Active Listings</h2>
-
-    TODO
+<h2>Active Listings</h2>
+<div class="container">
+    <div class="row">
+        {% for listing in listings %}
+        <div class="col-4">
+            <div class="card mt-4 mr-4" style="width: 18rem; height: 30rem;">
+                <img src="{{listing.image}}" class="card-img-top" style="width: 100%; height:15vw; object-fit:cover;"
+                    alt="Listing photo">
+                <div class="card-body">
+                    <h5 class="card-title">{{listing.title}}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">USD {{listing.price}}</h6>
+                    <p class="card-text">{{listing.description}}</p>
+                    <a href="#" class="btn btn-primary">See</a>
+                </div>
+                <div class="card-footer">
+                    Created {{listing.date}}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}
