@@ -12,16 +12,19 @@ class NewListingForm(forms.Form):
     title = forms.CharField(required=True, widget=forms.TextInput(
         attrs={'class': 'form-control'}))
     description = forms.CharField(
-        required=True, widget=forms.Textarea(attrs={'class': 'form-control', 'size':'20'}))
+        required=True, widget=forms.Textarea(attrs={'class': 'form-control', 'size': '20'}))
     price = forms.FloatField(required=True, label="Starting bid", widget=forms.NumberInput(
         attrs={'class': 'form-control'}))
-    image = forms.URLField(required=False, label="Image URL", empty_value="https://images.app.goo.gl/nzrFXjvyZuXeG3cF8",
+    image = forms.URLField(required=False, label="Image URL", empty_value="https://ctkbiotech.com/wp/wp-content/uploads/2018/03/not-available.jpg",
                            widget=forms.URLInput(attrs={'class': 'form-control'}))
-    category = forms.ModelChoiceField(required=False, queryset=Category.objects.all(), widget=forms.Select(attrs={'class': 'form-control'}))
+    category = forms.ModelChoiceField(required=False, queryset=Category.objects.all(
+    ), widget=forms.Select(attrs={'class': 'form-control'}))
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    return render(request, "auctions/index.html", {
+        'listings': Listing.objects.filter(active=True)
+    })
 
 
 def login_view(request):
