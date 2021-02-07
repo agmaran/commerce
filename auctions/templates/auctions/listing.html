@@ -6,6 +6,7 @@
 <p>{{listing.description}}</p>
 <h6 class="mb-2 text-muted">Current price: USD {{listing.price}}</h6>
 <p>{{n_bids}} bid(s) so far.</p>
+{% if listing not in my_listings and listing.active %}
 <h6 class="mb-2 text-muted">Your bids: </h6>
 <ul>
     {% for bid in my_bids %}
@@ -35,4 +36,16 @@
     {{form}}
     <input type="submit" class="btn btn-primary mt-3" value="Place Bid">
 </form>
+{% endif %}
+{% if listing in my_listings and listing.active %}
+<form action="{% url 'close' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
+    {% csrf_token %}
+    <input type="submit" class="btn btn-primary mt-3" value="Close Auction">
+</form>
+{% endif %}
+{% if listing.active == False and winner %}
+<div class="alert alert-danger" role="alert">
+    The winner is {{winner}}
+</div>
+{%endif%}
 {% endblock %}

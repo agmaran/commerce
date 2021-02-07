@@ -105,6 +105,16 @@ def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
     error = None
     form = PlaceBidForm()
+    winner = None
+    if listing.active == False:
+        listing_bids = listing.listing_bids.all()
+        aux = 0
+        winner_bid = None
+        for bid in listing_bids:
+            if bid.amount > aux:
+                winner_bid = bid
+                aux = bid.amount
+        winner = winner_bid.bidder
     if request.method == "POST":
         form = PlaceBidForm(request.POST)
         if request.user.is_authenticated:
@@ -123,16 +133,20 @@ def listing(request, listing_id):
     try:
         is_on_watchlist = listing in request.user.watchlist.all()
         my_bids = request.user.my_bids.filter(listing=listing)
+        my_listings = request.user.my_listings.all()
     except:
         is_on_watchlist = False
         my_bids = None
+        my_listings = None
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "n_bids": len(listing.listing_bids.all()),
         "is_on_watchlist": is_on_watchlist,
         "my_bids": my_bids,
         "form": form,
-        "error": error
+        "error": error,
+        "my_listings": my_listings,
+        "winner": winner
     })
 
 
@@ -146,4 +160,11 @@ def a_watchlist(request, listing_id):
 def r_watchlist(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
     request.user.watchlist.remove(listing)
+    return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+
+
+def close(request, listing_id):
+    listing = Listing.objects.get(pk=listing_id)
+    listing.active = False
+    listing.save()
     return HttpResponseRedirect(reverse("listing", args=[listing_id]))
