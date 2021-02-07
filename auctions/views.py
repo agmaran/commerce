@@ -22,6 +22,11 @@ class NewListingForm(forms.Form):
     ), widget=forms.Select(attrs={'class': 'form-control'}))
 
 
+class PlaceBidForm(forms.Form):
+    bid = forms.FloatField(required=True, label="Your bid",
+                           widget=forms.NumberInput(attrs={'class': 'form-control'}))
+
+
 def index(request):
     return render(request, "auctions/index.html", {
         'listings': Listing.objects.filter(active=True)
@@ -96,8 +101,30 @@ def create(request):
     })
 
 
+@login_required(login_url="login")
 def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
+    if request.method == "POST":
+        form = PlaceBidForm(request.POST)
+        if form.is_valid() and (form.cleaned_data["bid"] > listing.price):
+            b = Bid(amount=form.cleaned_data["bid"],
+                    bidder=request.user, listing=listing)
+            b.save()
+            listing.price = form.cleaned_data["bid"]
+            listing.save()
+        else:
+            try:
+                is_on_watchlist = listing in request.user.watchlist.all()
+            except AttributeError:
+                is_on_watchlist = False
+            return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "n_bids": len(listing.listing_bids.all()),
+                "is_on_watchlist": is_on_watchlist,
+                "my_bids": request.user.my_bids.filter(listing=listing),
+                "form": form,
+                "error": "The bid must be greater than the current price for the listing."
+            })
     try:
         is_on_watchlist = listing in request.user.watchlist.all()
     except AttributeError:
@@ -105,11 +132,12 @@ def listing(request, listing_id):
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "n_bids": len(listing.listing_bids.all()),
-        "is_on_watchlist": is_on_watchlist
+        "is_on_watchlist": is_on_watchlist,
+        "my_bids": request.user.my_bids.filter(listing=listing),
+        "form": PlaceBidForm()
     })
 
 
-@login_required(login_url="login")
 def a_watchlist(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
     listing.watchers.add(request.user)
