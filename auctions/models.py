@@ -16,17 +16,17 @@ class Category(models.Model):
 
 class Listing(models.Model):
     title = models.CharField(max_length=64)
-    description = models.CharField(max_length=64)
+    description = models.TextField()
     price = models.FloatField(max_length=None)
-    image = models.URLField(blank=True)
+    image = models.URLField(blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="my_listings")
     category = models.ForeignKey(
-        Category, blank=True, on_delete=models.CASCADE, related_name="category_listings")
+        Category, blank=True, null=True, on_delete=models.CASCADE, related_name="category_listings")
     watchers = models.ManyToManyField(
-        User, blank=True, related_name="watchlist")
+        User, blank=True, null=True, related_name="watchlist")
 
     def __str__(self):
         return f"{self.title}"
