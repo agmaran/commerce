@@ -103,6 +103,8 @@ def create(request):
 
 def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
+    error = None
+    form = PlaceBidForm()
     if request.method == "POST":
         form = PlaceBidForm(request.POST)
         if request.user.is_authenticated:
@@ -113,31 +115,9 @@ def listing(request, listing_id):
                     b.save()
                     listing.price = form.cleaned_data["bid"]
                     listing.save()
+                    form = PlaceBidForm()
                 else:
-                    try:
-                        is_on_watchlist = listing in request.user.watchlist.all()
-                    except AttributeError:
-                        is_on_watchlist = False
-                    return render(request, "auctions/listing.html", {
-                        "listing": listing,
-                        "n_bids": len(listing.listing_bids.all()),
-                        "is_on_watchlist": is_on_watchlist,
-                        "my_bids": request.user.my_bids.filter(listing=listing),
-                        "form": form,
-                        "error": "The bid must be greater than the current price for the listing."
-                    })
-            else:
-                try:
-                    is_on_watchlist = listing in request.user.watchlist.all()
-                except AttributeError:
-                    is_on_watchlist = False
-                return render(request, "auctions/listing.html", {
-                    "listing": listing,
-                    "n_bids": len(listing.listing_bids.all()),
-                    "is_on_watchlist": is_on_watchlist,
-                    "my_bids": request.user.my_bids.filter(listing=listing),
-                    "form": form
-                })
+                    error = "The bid must be greater than the current price for the listing."
         else:
             return HttpResponseRedirect(reverse("login"))
     try:
@@ -151,7 +131,8 @@ def listing(request, listing_id):
         "n_bids": len(listing.listing_bids.all()),
         "is_on_watchlist": is_on_watchlist,
         "my_bids": my_bids,
-        "form": PlaceBidForm()
+        "form": form,
+        "error": error
     })
 
 
