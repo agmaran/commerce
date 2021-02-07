@@ -114,7 +114,8 @@ def listing(request, listing_id):
             if bid.amount > aux:
                 winner_bid = bid
                 aux = bid.amount
-        winner = winner_bid.bidder
+        if not (winner_bid is None):
+            winner = winner_bid.bidder
     if request.method == "POST":
         form = PlaceBidForm(request.POST)
         if request.user.is_authenticated:

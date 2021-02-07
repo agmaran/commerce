@@ -1,51 +1,65 @@
 {% extends "auctions/layout.html" %}
+
 {% block title %}{{listing.title}}{% endblock %}
+
 {% block body %}
-<h2>Listing: {{listing.title}}</h2>
-<img src="{{listing.image}}" alt="Listing photo">
-<p>{{listing.description}}</p>
-<h6 class="mb-2 text-muted">Current price: USD {{listing.price}}</h6>
-<p>{{n_bids}} bid(s) so far.</p>
-{% if listing not in my_listings and listing.active %}
-<h6 class="mb-2 text-muted">Your bids: </h6>
-<ul>
-    {% for bid in my_bids %}
-    <li>USD {{bid.amount}}</li>
-    {% empty %}
-    <li>You haven't bidded on this item.</li>
-    {% endfor %}
-</ul>
-{% if is_on_watchlist %}
-<form action="{% url 'r_watchlist' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
-    {% csrf_token %}
-    <input type="submit" class="btn btn-primary mt-3" value="Remove from my Watchlist">
-</form>
-{% else %}
-<form action="{% url 'a_watchlist' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
-    {% csrf_token %}
-    <input type="submit" class="btn btn-primary mt-3" value="Add to my Watchlist">
-</form>
-{% endif %}
-{% if error %}
-<div class="alert alert-danger" role="alert">
-    {{error}}
-</div>
-{% endif %}
-<form action="{% url 'listing' listing.id %}" method="POST" class="col-12 pr-4">
-    {% csrf_token %}
-    {{form}}
-    <input type="submit" class="btn btn-primary mt-3" value="Place Bid">
-</form>
-{% endif %}
-{% if listing in my_listings and listing.active %}
-<form action="{% url 'close' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
-    {% csrf_token %}
-    <input type="submit" class="btn btn-primary mt-3" value="Close Auction">
-</form>
-{% endif %}
-{% if listing.active == False and winner %}
-<div class="alert alert-danger" role="alert">
-    The winner is {{winner}}
-</div>
-{%endif%}
+    <h2>Listing: {{listing.title}}</h2>
+    <img src="{{listing.image}}" alt="Listing photo">
+    <p>{{listing.description}}</p>
+    {% if listing.active %}
+        <h6 class="mb-2 text-muted">Current price: USD {{listing.price}}</h6>
+        <p>{{n_bids}} bid(s) so far.</p>
+        {% if listing not in my_listings %}
+            <p>Owner: {{listing.owner}}</p>
+            <h6 class="mb-2 text-muted">Your bids: </h6>
+            <ul>
+                {% for bid in my_bids %}
+                <li>USD {{bid.amount}}</li>
+                {% empty %}
+                <li>You haven't bidded on this item.</li>
+                {% endfor %}
+            </ul>
+            {% if is_on_watchlist %}
+                <form action="{% url 'r_watchlist' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
+                    {% csrf_token %}
+                    <input type="submit" class="btn btn-primary mt-3" value="Remove from my Watchlist">
+                </form>
+            {% else %}
+                <form action="{% url 'a_watchlist' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
+                    {% csrf_token %}
+                    <input type="submit" class="btn btn-primary mt-3" value="Add to my Watchlist">
+                </form>
+            {% endif %}
+            {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{error}}
+                </div>
+            {% endif %}
+            <form action="{% url 'listing' listing.id %}" method="POST" class="col-12 pr-4">
+                {% csrf_token %}
+                {{form}}
+                <input type="submit" class="btn btn-primary mt-3" value="Place Bid">
+            </form>
+        {% else %}
+            <form action="{% url 'close' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
+                {% csrf_token %}
+                <input type="submit" class="btn btn-primary mt-3" value="Close Auction">
+            </form>
+        {% endif %}
+    {% else %}
+        <h6 class="mb-2 text-muted">Sold price: USD {{listing.price}}</h6>
+        <p>{{n_bids}} bid(s) total.</p>
+        {% if winner %}
+            {% if listing in my_listings %}
+                <div class="alert alert-danger" role="alert">
+                    The winner is {{winner}}
+                </div>
+            {% elif winner == user %}
+                <div class="alert alert-danger" role="alert">
+                    You are the winner!
+                </div>
+            {% endif %}    
+        {% endif %}
+    {%endif%}
+
 {% endblock %}
