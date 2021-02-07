@@ -101,43 +101,61 @@ def create(request):
     })
 
 
-@login_required(login_url="login")
 def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
     if request.method == "POST":
         form = PlaceBidForm(request.POST)
-        if form.is_valid() and (form.cleaned_data["bid"] > listing.price):
-            b = Bid(amount=form.cleaned_data["bid"],
-                    bidder=request.user, listing=listing)
-            b.save()
-            listing.price = form.cleaned_data["bid"]
-            listing.save()
+        if request.user.is_authenticated:
+            if form.is_valid():
+                if (form.cleaned_data["bid"] > listing.price):
+                    b = Bid(amount=form.cleaned_data["bid"],
+                            bidder=request.user, listing=listing)
+                    b.save()
+                    listing.price = form.cleaned_data["bid"]
+                    listing.save()
+                else:
+                    try:
+                        is_on_watchlist = listing in request.user.watchlist.all()
+                    except AttributeError:
+                        is_on_watchlist = False
+                    return render(request, "auctions/listing.html", {
+                        "listing": listing,
+                        "n_bids": len(listing.listing_bids.all()),
+                        "is_on_watchlist": is_on_watchlist,
+                        "my_bids": request.user.my_bids.filter(listing=listing),
+                        "form": form,
+                        "error": "The bid must be greater than the current price for the listing."
+                    })
+            else:
+                try:
+                    is_on_watchlist = listing in request.user.watchlist.all()
+                except AttributeError:
+                    is_on_watchlist = False
+                return render(request, "auctions/listing.html", {
+                    "listing": listing,
+                    "n_bids": len(listing.listing_bids.all()),
+                    "is_on_watchlist": is_on_watchlist,
+                    "my_bids": request.user.my_bids.filter(listing=listing),
+                    "form": form
+                })
         else:
-            try:
-                is_on_watchlist = listing in request.user.watchlist.all()
-            except AttributeError:
-                is_on_watchlist = False
-            return render(request, "auctions/listing.html", {
-                "listing": listing,
-                "n_bids": len(listing.listing_bids.all()),
-                "is_on_watchlist": is_on_watchlist,
-                "my_bids": request.user.my_bids.filter(listing=listing),
-                "form": form,
-                "error": "The bid must be greater than the current price for the listing."
-            })
+            return HttpResponseRedirect(reverse("login"))
     try:
         is_on_watchlist = listing in request.user.watchlist.all()
-    except AttributeError:
+        my_bids = request.user.my_bids.filter(listing=listing)
+    except:
         is_on_watchlist = False
+        my_bids = None
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "n_bids": len(listing.listing_bids.all()),
         "is_on_watchlist": is_on_watchlist,
-        "my_bids": request.user.my_bids.filter(listing=listing),
+        "my_bids": my_bids,
         "form": PlaceBidForm()
     })
 
 
+@login_required(login_url="login")
 def a_watchlist(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
     listing.watchers.add(request.user)
