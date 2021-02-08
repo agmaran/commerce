@@ -4,7 +4,7 @@ from django.db.models.deletion import SET_NULL
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from .models import User, Category, Listing, Bid
+from .models import User, Category, Listing, Bid, Comment
 from django import forms
 from django.contrib.auth.decorators import login_required
 
@@ -25,6 +25,11 @@ class NewListingForm(forms.Form):
 class PlaceBidForm(forms.Form):
     bid = forms.FloatField(required=True, label="Your bid",
                            widget=forms.NumberInput(attrs={'class': 'form-control'}))
+
+
+class CommentForm(forms.Form):
+    comment = forms.CharField(required=True, widget=forms.Textarea(
+        attrs={'class': 'form-control', 'size': '20'}))
 
 
 def index(request):
@@ -105,12 +110,13 @@ def listing(request, listing_id):
     form = PlaceBidForm()
     winner = None
     listing_bids = listing.listing_bids.all()
+    comments = listing.listing_comments.all()
     aux = 0
     winner_bid = None
     for bid in listing_bids:
-            if bid.amount > aux:
-                winner_bid = bid
-                aux = bid.amount
+        if bid.amount > aux:
+            winner_bid = bid
+            aux = bid.amount
     if listing.active == False:
         if not (winner_bid is None):
             winner = winner_bid.bidder
@@ -119,20 +125,20 @@ def listing(request, listing_id):
         if request.user.is_authenticated:
             if form.is_valid():
                 if(winner_bid):
-                    if(form.cleaned_data["bid"]> winner_bid.amount):
+                    if(form.cleaned_data["bid"] > winner_bid.amount):
                         b = Bid(amount=form.cleaned_data["bid"],
-                            bidder=request.user, listing=listing)
+                                bidder=request.user, listing=listing)
                         b.save()
                         listing.price = form.cleaned_data["bid"]
                         listing.save()
                         form = PlaceBidForm()
                         winner_bid = b
                     else:
-                        error= "The bid must be greater than any other bids that have been placed."
+                        error = "The bid must be greater than any other bids that have been placed."
                 else:
                     if(form.cleaned_data["bid"] >= listing.price):
                         b = Bid(amount=form.cleaned_data["bid"],
-                            bidder=request.user, listing=listing)
+                                bidder=request.user, listing=listing)
                         b.save()
                         listing.price = form.cleaned_data["bid"]
                         listing.save()
@@ -149,6 +155,7 @@ def listing(request, listing_id):
         is_on_watchlist = False
         my_bids = None
         my_listings = None
+
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "n_bids": len(listing.listing_bids.all()),
@@ -158,7 +165,8 @@ def listing(request, listing_id):
         "error": error,
         "my_listings": my_listings,
         "winner": winner,
-        "winner_bid": winner_bid
+        "winner_bid": winner_bid,
+        "comments": comments
     })
 
 
@@ -180,3 +188,20 @@ def close(request, listing_id):
     listing.active = False
     listing.save()
     return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+
+
+@login_required(login_url="login")
+def comment(request, listing_id):
+    form = CommentForm()
+    listing = Listing.objects.get(pk=listing_id)
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            c = Comment(
+                comment=form.cleaned_data["comment"], commentator=request.user, listing=listing)
+            c.save()
+            return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+    return render(request, "auctions/comment.html", {
+        'listing': listing,
+        'form': form
+    })
