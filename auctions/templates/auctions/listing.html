@@ -55,6 +55,9 @@
                 </form>
             {% endif %}
         {% endif %}
+        <form action="{% url 'comment' listing.id %}" method="GET" class="col-12 pr-4 mb-2">
+            <input type="submit" class="btn btn-primary mt-3" value="Add comment">
+        </form>
     {% else %}
         <h6 class="mb-2 text-muted">Sold price: USD {{listing.price}}</h6>
         <p>{{n_bids}} bid(s) total.</p>
@@ -70,5 +73,14 @@
             {% endif %}    
         {% endif %}
     {%endif%}
-
+    <h4>Comments</h4>
+    {% if comments %}
+        <ul class="list-group list-group-flush">
+            {% for comment in comments %}
+                <li class="list-group-item"><strong>{{comment.commentator}} says:</strong> {{comment.comment}}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>There are no comments on this listing.</p>
+    {% endif %}
 {% endblock %}
