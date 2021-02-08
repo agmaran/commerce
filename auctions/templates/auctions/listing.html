@@ -7,17 +7,23 @@
     <img src="{{listing.image}}" alt="Listing photo">
     <p>{{listing.description}}</p>
     {% if listing.active %}
-        <h6 class="mb-2 text-muted">Current price: USD {{listing.price}}</h6>
+        {% if winner_bid %}
+            <h6 class="mb-2 text-muted">Current price: USD {{winner_bid.amount}}</h6>
+        {% else %}
+            <h6 class="mb-2 text-muted">Starting bid: USD {{listing.price}}</h6>
+        {% endif %}
         <p>{{n_bids}} bid(s) so far.</p>
-        {% if listing not in my_listings %}
+        {% if listing not in my_listings or my_listings == None %}
             <p>Owner: {{listing.owner}}</p>
-            <h6 class="mb-2 text-muted">Your bids: </h6>
-            <ul>
-                {% for bid in my_bids %}
-                <li>USD {{bid.amount}}</li>
-                {% empty %}
-                <li>You haven't bidded on this item.</li>
-                {% endfor %}
+            {% if user.is_authenticated %}
+                <h6 class="mb-2 text-muted">Your bids: </h6>
+                <ul>
+                    {% for bid in my_bids %}
+                    <li>USD {{bid.amount}}</li>
+                    {% empty %}
+                    <li>You haven't bidded on this item.</li>
+                    {% endfor %}
+            {% endif %}
             </ul>
             {% if is_on_watchlist %}
                 <form action="{% url 'r_watchlist' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
@@ -41,10 +47,13 @@
                 <input type="submit" class="btn btn-primary mt-3" value="Place Bid">
             </form>
         {% else %}
-            <form action="{% url 'close' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
-                {% csrf_token %}
-                <input type="submit" class="btn btn-primary mt-3" value="Close Auction">
-            </form>
+            {% if user.is_authenticated %}
+                <p>You are the owner of this listing.</p>
+                <form action="{% url 'close' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
+                    {% csrf_token %}
+                    <input type="submit" class="btn btn-primary mt-3" value="Close Auction">
+                </form>
+            {% endif %}
         {% endif %}
     {% else %}
         <h6 class="mb-2 text-muted">Sold price: USD {{listing.price}}</h6>

@@ -86,18 +86,16 @@ def register(request):
 
 
 def create(request):
+    form = NewListingForm()
     if request.method == "POST":
         form = NewListingForm(request.POST)
         if form.is_valid():
             l = Listing(title=form.cleaned_data["title"], description=form.cleaned_data["description"], price=form.cleaned_data["price"],
                         image=form.cleaned_data["image"], owner=request.user, category=form.cleaned_data["category"])
             l.save()
-        else:
-            return render(request, "auctions/create.html", {
-                'form': form
-            })
+            return HttpResponseRedirect(reverse("listing", args=[l.id]))
     return render(request, "auctions/create.html", {
-        'form': NewListingForm()
+        'form': form
     })
 
 
@@ -106,29 +104,41 @@ def listing(request, listing_id):
     error = None
     form = PlaceBidForm()
     winner = None
-    if listing.active == False:
-        listing_bids = listing.listing_bids.all()
-        aux = 0
-        winner_bid = None
-        for bid in listing_bids:
+    listing_bids = listing.listing_bids.all()
+    aux = 0
+    winner_bid = None
+    for bid in listing_bids:
             if bid.amount > aux:
                 winner_bid = bid
                 aux = bid.amount
+    if listing.active == False:
         if not (winner_bid is None):
             winner = winner_bid.bidder
     if request.method == "POST":
         form = PlaceBidForm(request.POST)
         if request.user.is_authenticated:
             if form.is_valid():
-                if (form.cleaned_data["bid"] > listing.price):
-                    b = Bid(amount=form.cleaned_data["bid"],
+                if(winner_bid):
+                    if(form.cleaned_data["bid"]> winner_bid.amount):
+                        b = Bid(amount=form.cleaned_data["bid"],
                             bidder=request.user, listing=listing)
-                    b.save()
-                    listing.price = form.cleaned_data["bid"]
-                    listing.save()
-                    form = PlaceBidForm()
+                        b.save()
+                        listing.price = form.cleaned_data["bid"]
+                        listing.save()
+                        form = PlaceBidForm()
+                        winner_bid = b
+                    else:
+                        error= "The bid must be greater than any other bids that have been placed."
                 else:
-                    error = "The bid must be greater than the current price for the listing."
+                    if(form.cleaned_data["bid"] >= listing.price):
+                        b = Bid(amount=form.cleaned_data["bid"],
+                            bidder=request.user, listing=listing)
+                        b.save()
+                        listing.price = form.cleaned_data["bid"]
+                        listing.save()
+                        form = PlaceBidForm()
+                    else:
+                        error = "The bid must be at least as large as the starting bid."
         else:
             return HttpResponseRedirect(reverse("login"))
     try:
@@ -147,7 +157,8 @@ def listing(request, listing_id):
         "form": form,
         "error": error,
         "my_listings": my_listings,
-        "winner": winner
+        "winner": winner,
+        "winner_bid": winner_bid
     })
 
 
