@@ -4,7 +4,7 @@
 
 {% block body %}
     <h2>Listing: {{listing.title}}</h2>
-    <img src="{{listing.image}}" alt="Listing photo">
+    <img src="{{listing.image}}" class="w-25 h-25 rounded mx-auto d-block" alt="Listing photo">
     <p>{{listing.description}}</p>
     {% if listing.active %}
         {% if winner_bid %}
@@ -28,12 +28,12 @@
             {% if is_on_watchlist %}
                 <form action="{% url 'r_watchlist' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
                     {% csrf_token %}
-                    <input type="submit" class="btn btn-primary mt-3" value="Remove from my Watchlist">
+                    <input type="submit" class="btn btn-outline-danger" value="Remove from my Watchlist">
                 </form>
             {% else %}
                 <form action="{% url 'a_watchlist' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
                     {% csrf_token %}
-                    <input type="submit" class="btn btn-primary mt-3" value="Add to my Watchlist">
+                    <input type="submit" class="btn btn-outline-success mt-3" value="Add to my Watchlist">
                 </form>
             {% endif %}
             {% if error %}
@@ -41,39 +41,44 @@
                     {{error}}
                 </div>
             {% endif %}
-            <form action="{% url 'listing' listing.id %}" method="POST" class="col-12 pr-4">
-                {% csrf_token %}
-                {{form}}
-                <input type="submit" class="btn btn-primary mt-3" value="Place Bid">
-            </form>
+            {% if winner_bid.bidder != user %}
+                <form action="{% url 'listing' listing.id %}" method="POST" class="col-12 pr-4">
+                    {% csrf_token %}
+                    {{form}}
+                    <input type="submit" class="btn btn-outline-info mt-3" value="Place Bid">
+                </form>
+            {% else %}
+                <span class="badge bg-info text-light">You are winning this auction.</span>
+            {% endif %}
         {% else %}
             {% if user.is_authenticated %}
                 <p>You are the owner of this listing.</p>
                 <form action="{% url 'close' listing.id %}" method="POST" class="col-12 pr-4 mb-2">
                     {% csrf_token %}
-                    <input type="submit" class="btn btn-primary mt-3" value="Close Auction">
+                    <input type="submit" class="btn btn-outline-danger mt-3" value="Close Auction">
                 </form>
             {% endif %}
         {% endif %}
-        <form action="{% url 'comment' listing.id %}" method="GET" class="col-12 pr-4 mb-2">
-            <input type="submit" class="btn btn-primary mt-3" value="Add comment">
-        </form>
     {% else %}
         <h6 class="mb-2 text-muted">Sold price: USD {{listing.price}}</h6>
         <p>{{n_bids}} bid(s) total.</p>
         {% if winner %}
             {% if listing in my_listings %}
-                <div class="alert alert-danger" role="alert">
-                    The winner is {{winner}}
+                <div class="alert alert-success col-2" role="alert">
+                    The winner is {{winner}}.
                 </div>
             {% elif winner == user %}
-                <div class="alert alert-danger" role="alert">
-                    You are the winner!
+                <div class="alert alert-success col-2" role="alert">
+                    You are the winner of this auction!
+                </div>
+            {% else %}
+                <div class="alert alert-danger col-2" role="alert">
+                    Sorry, you didn't win this auction.
                 </div>
             {% endif %}    
         {% endif %}
     {%endif%}
-    <h4>Comments</h4>
+    <h4 class="mt-3">Comments</h4>
     {% if comments %}
         <ul class="list-group list-group-flush">
             {% for comment in comments %}
@@ -83,4 +88,7 @@
     {% else %}
         <p>There are no comments on this listing.</p>
     {% endif %}
+    <form action="{% url 'comment' listing.id %}" method="GET" class="col-12 pr-4 mb-2">
+        <input type="submit" class="btn btn-primary mt-3" value="Add comment">
+    </form>
 {% endblock %}

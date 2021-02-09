@@ -14,9 +14,9 @@
     <h1>Auctions</h1>
     <div>
         {% if user.is_authenticated %}
-        Signed in as <strong>{{ user.username }}</strong>.
+        <span class="badge bg-info text-light">Signed in as {{ user.username }}</span>
         {% else %}
-        Not signed in.
+        <span class="badge bg-secondary text-light">Not signed in</span>
         {% endif %}
     </div>
     <ul class="nav">
@@ -32,6 +32,9 @@
         </li>
         <li class="nav-item">
             <a class="nav-link" href="{% url 'watchlist' %}">Watchlist</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'my_listings' %}">My Listings</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="{% url 'logout' %}">Log Out</a>

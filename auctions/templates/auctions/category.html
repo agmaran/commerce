@@ -3,25 +3,27 @@
 {% block body %}
 <h2>{{category}} active listings</h2>
 <div class="container">
-    <div class="row">
+    <div class="row row-cols-1 row-cols-md-2 g-4">
         {% for listing in listings %}
-        <div class="col-4">
-            <div class="card mt-2" style="height: 30rem;">
+        <div class="col mb-4">
+            <div class="card text-white bg-dark h-100">
                 <img src="{{listing.image}}" class="card-img-top" style="width: 100%; height:15vw; object-fit:cover;"
                     alt="Listing photo">
                 <div class="card-header text-truncate h5">{{listing.title}}</div>
                 <div class="card-body">
                     <h6 class="card-subtitle mb-2 text-muted">USD {{listing.price}}</h6>
                     <p class="card-text text-truncate">{{listing.description}}</p>
+                    <a href="{% url 'listing' listing.id %}" class="btn btn-outline-secondary">View</a>
                 </div>
                 <div class="card-footer text-muted">
                     Created {{listing.date}}
-                    <a href="{% url 'listing' listing.id %}" class="btn btn-primary">See</a>
                 </div>
             </div>
         </div>
         {% empty %}
-        <p>There are no active listings in this category.</p>
+            <div class="alert alert-dark" role="alert">
+                There are not active listings in this category.
+            </div>
         {% endfor %}
     </div>
 </div>
