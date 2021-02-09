@@ -205,3 +205,8 @@ def comment(request, listing_id):
         'listing': listing,
         'form': form
     })
+
+def watchlist(request):
+    return render(request, "auctions/watchlist.html", {
+        'watchlist': request.user.watchlist.all()
+    })
