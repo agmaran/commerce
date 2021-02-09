@@ -3,13 +3,13 @@
 {% block title %}Your Watchlist{% endblock %}
 
 {% block body %}
-<h2>Your watchlist</h2>
+<h2>Listings created by you</h2>
 <div class="container">
     <div class="row row-cols-1 row-cols-md-2 g-4">
-        {% for listing in watchlist %}
+        {% for listing in my_listings %}
         <div class="col mb-4">
             {% if listing.active %}
-            <div class="card text-white bg-dark mb-3 h-100">
+            <div class="card text-white bg-dark h-100">
                 <img src="{{listing.image}}" class="card-img-top" style="width: 100%; height:15vw; object-fit:cover;"
                     alt="Listing photo">
                 <div class="card-header text-truncate h5">{{listing.title}}</div>

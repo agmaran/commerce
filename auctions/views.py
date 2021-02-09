@@ -145,6 +145,8 @@ def listing(request, listing_id):
                         form = PlaceBidForm()
                     else:
                         error = "The bid must be at least as large as the starting bid."
+                if listing not in request.user.watchlist.all():
+                    listing.watchers.add(request.user)
         else:
             return HttpResponseRedirect(reverse("login"))
     try:
@@ -206,19 +208,28 @@ def comment(request, listing_id):
         'form': form
     })
 
+
 def watchlist(request):
     return render(request, "auctions/watchlist.html", {
         'watchlist': request.user.watchlist.all()
     })
 
+
 def categories(request):
-    return render(request, "auctions/categories.html",{
+    return render(request, "auctions/categories.html", {
         'categories': Category.objects.all()
     })
 
+
 def category(request, category_id):
     category = Category.objects.get(pk=category_id)
-    return render(request, "auctions/category.html",{
-        'listings': Listing.objects.filter(active=True,category=category),
+    return render(request, "auctions/category.html", {
+        'listings': Listing.objects.filter(active=True, category=category),
         'category': category
+    })
+
+
+def my_listings(request):
+    return render(request, "auctions/my_listings.html", {
+        'my_listings': request.user.my_listings.all()
     })
